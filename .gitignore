@@ -1,0 +1,7 @@
+package-lock.json
+node_modules
+.env
+jest.config.ts
+nodemon.json
+prisma/migrations
+dist
