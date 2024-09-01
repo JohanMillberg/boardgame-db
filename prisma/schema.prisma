@@ -13,6 +13,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model BoardGame {
+  id      String   @id @default(uuid())
+  title   String
+  reviews Review[]
+}
+
 model User {
   id       String    @id @default(uuid())
   username String    @unique
@@ -22,12 +28,14 @@ model User {
 }
 
 model Review {
-  id     String @id @default(uuid())
-  title  String
-  body   String
-  score  Int
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  id          String    @id @default(uuid())
+  title       String
+  body        String
+  score       Int
+  boardGameId String
+  boardGame   BoardGame @relation(fields: [boardGameId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
 }
 
 model Comment {

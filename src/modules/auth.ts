@@ -1,8 +1,7 @@
-import { Response, NextFunction } from 'express';
-import { ApiRequest } from '../@types';
+import { Request, Response, NextFunction } from 'express';
 import jwt, { Secret } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import { User } from '../@types/user';
+import { User } from '@prisma/client';
 
 export const hashPassword = (password: string): Promise<string> => {
     return bcrypt.hash(password, 5);
@@ -23,7 +22,7 @@ export const createJWT = (user: User): string => {
     return token;
 }
 
-export const protect = (req: ApiRequest, res: Response, next: NextFunction) => {
+export const protect = (req: Request, res: Response, next: NextFunction) => {
     const bearer = req.headers.authorization;
     const jwtSecret = process.env.JWT_SECRET as Secret;
 
