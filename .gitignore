@@ -5,3 +5,4 @@ jest.config.ts
 nodemon.json
 prisma/migrations
 dist
+eslint.config.mjs
