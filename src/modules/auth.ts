@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt, { Secret } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { User } from '@prisma/client';
+import prisma from '../db';
 
 export const hashPassword = (password: string): Promise<string> => {
     return bcrypt.hash(password, 5);
@@ -41,14 +42,28 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
     }
 
     try {
-        const user = jwt.verify(token, jwtSecret);
+        const user = jwt.verify(token, jwtSecret) as string;
         req.user = user;
         next();
     }
 
     catch (e) {
         res.status(401);
-        res.json({ message: "Invalid token" });
+        res.json({ message: "Invalid token", error: e });
         return;
     }
+}
+
+export const checkIfAdmin = async (userId: string): Promise<boolean> => {
+    const admins = await prisma.user.findMany({
+        where: {
+            userType: "ADMIN"
+        }
+    });
+
+    const adminIds = admins.reduce((allAdminIds: string[], admin: User) => {
+        return [...allAdminIds, ...admin.id]
+    }, []);
+
+    return adminIds.includes(userId)
 }
