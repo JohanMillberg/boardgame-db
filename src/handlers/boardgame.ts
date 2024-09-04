@@ -1,4 +1,3 @@
-import { User } from '@prisma/client';
 import prisma from '../db';
 import { NextFunction, Request, Response } from 'express';
 import { checkIfAdmin } from '../modules/auth';
@@ -66,8 +65,34 @@ export const updateGame = async (req: Request, res: Response, next: NextFunction
                 },
                 data: req.body
             })
+
+            res.status(200);
+            res.json({ data: updatedGame });
         }
     } catch (e) {
-        next(e)
+        next(e);
+    }
+};
+
+export const deleteGame = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userIsAdmin = checkIfAdmin(req.user);
+
+        if (!userIsAdmin) {
+            res.status(401);
+            res.json({ message: "User not authorized to perform updates" })
+            return;
+        } else {
+            const deleted = await prisma.boardGame.delete({
+                where: {
+                    id: req.params.id
+                }
+            });
+
+            res.status(200);
+            res.json({ data: deleted });
+        }
+    } catch (e) {
+        next(e);
     }
 };

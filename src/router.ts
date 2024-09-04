@@ -1,21 +1,15 @@
 import { Router } from "express";
-import { createGame, getGames } from "./handlers/boardgame";
+import { createGame, deleteGame, getGames, getOneGame, updateGame } from "./handlers/boardgame";
+import { createReview, deleteReview, getAllReviews, getOneReview, updateReview } from "./handlers/review";
 
 const router = Router();
 
 // Review
-router.get('/review', () => {
-    console.log("Gets all reviews made by user");
-});
-router.get('/review/:id', () => {
-    console.log("Gets one review");
-});
-router.post('/review', () => {
-    console.log("Posts review");
-});
-router.put('/review/:id', () => {
-    console.log("Updates review");
-});
+router.get('/review', getAllReviews);
+router.get('/review/:id', getOneReview);
+router.post('/review', createReview);
+router.put('/review/:id', updateReview);
+router.delete('/review/:id', deleteReview);
 
 // Comment
 router.get('/comment', () => {
@@ -33,12 +27,9 @@ router.put('/comment/:id', () => {
 
 // Boardgame
 router.get('/game', getGames);
-router.get('/game/:id', () => {
-    console.log("Gets one game");
-});
+router.get('/game/:id', getOneGame);
 router.post('/game', createGame);
-router.put('/game/:id', () => {
-    console.log("Updates game");
-});
+router.put('/game/:id', updateGame);
+router.delete('/game/:id', deleteGame);
 
 export default router;
