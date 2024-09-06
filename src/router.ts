@@ -1,29 +1,31 @@
 import { Router } from "express";
+import { body } from 'express-validator';
 import { createGame, deleteGame, getGames, getOneGame, updateGame } from "./handlers/boardgame";
 import { createReview, deleteReview, getAllReviews, getOneReview, updateReview } from "./handlers/review";
+import { createComment, deleteComment, getAllComments, getOneComment, updateComment } from "./handlers/comment";
+import { handleInputErrors } from "./modules/middleware";
 
 const router = Router();
 
 // Review
 router.get('/review', getAllReviews);
 router.get('/review/:id', getOneReview);
-router.post('/review', createReview);
+router.post('/review',
+    body('title').isString(),
+    body('body').isString(),
+    body('score').isInt(),
+    body('boardGameId').isString(),
+    handleInputErrors,
+    createReview);
 router.put('/review/:id', updateReview);
 router.delete('/review/:id', deleteReview);
 
 // Comment
-router.get('/comment', () => {
-    console.log("Gets all comments made by user");
-});
-router.get('/comment/:id', () => {
-    console.log("Gets one comment");
-});
-router.post('/comment', () => {
-    console.log("Posts comment");
-});
-router.put('/comment/:id', () => {
-    console.log("Updates comment");
-});
+router.get('/comment', getAllComments);
+router.get('/comment/:id', getOneComment);
+router.post('/comment', createComment);
+router.put('/comment/:id', updateComment);
+router.delete('/comment/:id', deleteComment);
 
 // Boardgame
 router.get('/game', getGames);

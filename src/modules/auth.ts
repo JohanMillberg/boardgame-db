@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt, { Secret } from 'jsonwebtoken';
+import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { User } from '@prisma/client';
 import prisma from '../db';
@@ -42,8 +42,8 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
     }
 
     try {
-        const user = jwt.verify(token, jwtSecret) as string;
-        req.user = user;
+        const user = jwt.verify(token, jwtSecret) as JwtPayload;
+        req.user = user.id;
         next();
     }
 
