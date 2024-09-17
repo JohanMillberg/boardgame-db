@@ -1,8 +1,37 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
+import jwt, { Secret } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { User } from '@prisma/client';
 import prisma from '../db';
+import { Token, TokenConfig, TokenContents } from '../types/token';
+import { CookieOptions } from '../types/cookie';
+
+const tokenConfigs: Record<Token, TokenConfig> = {
+    [Token.Access]: {
+        secretEnvKey: 'JWT_ACCESS_SECRET',
+        expiresIn: '15m'
+    },
+    [Token.Refresh]: {
+        secretEnvKey: 'JWT_REFRESH_SECRET',
+        expiresIn: '7d'
+    }
+};
+
+const cookieConfigs: Record<Token, Omit<CookieOptions, 'secure'> & { name: string }> = {
+    [Token.Access]: {
+        name: 'accessToken',
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000
+    },
+    [Token.Refresh]: {
+        name: 'refreshToken',
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    }
+};
+
 
 export const hashPassword = (password: string): Promise<string> => {
     return bcrypt.hash(password, 5);
@@ -12,43 +41,61 @@ export const comparePassword = (password: string, hash: string): Promise<boolean
     return bcrypt.compare(password, hash);
 }
 
-export const createJWT = (user: User): string => {
-    const jwtSecret = process.env.JWT_SECRET as Secret;
+const createJWT = (user: TokenContents, jwtSecret: Secret, expiryTime: string): string => {
     const token = jwt.sign({
         id: user.id,
-        username: user.username
+        username: user.username,
     },
-        jwtSecret
-    )
+        jwtSecret,
+        {
+            expiresIn: expiryTime
+        }
+    );
     return token;
 }
 
-export const protect = (req: Request, res: Response, next: NextFunction) => {
-    const bearer = req.headers.authorization;
-    const jwtSecret = process.env.JWT_SECRET as Secret;
+const createToken = (user: TokenContents, tokenType: Token): string => {
+    const config = tokenConfigs[tokenType];
+    const secret = process.env[config.secretEnvKey] as Secret;
 
-    if (!bearer) {
-        res.status(400);
-        res.json({ message: "Not authorized" });
-        return;
+    if (!secret) {
+        throw new Error(`Environment variable ${config.secretEnvKey} is not set`);
     }
 
-    const [, token] = bearer.split(' ');
+    const token = createJWT(user, secret, config.expiresIn);
+    return token;
+}
 
-    if (!token) {
+export const createAuthCookies = (res: Response, user: TokenContents): void => {
+    Object.values(Token).forEach(tokenType => {
+        const token = createToken(user, tokenType);
+        const config = cookieConfigs[tokenType];
+
+        res.cookie(config.name, token, {
+            ...config,
+            secure: process.env.NODE_ENV === 'production'
+        });
+    });
+};
+
+export const protect = (req: Request, res: Response, next: NextFunction) => {
+    const accessToken = req.cookies.accessToken;
+    const accessSecret = process.env.JWT_ACCESS_SECRET as Secret;
+
+    if (!accessToken) {
         res.status(401);
-        res.json({ message: "Invalid token" });
+        res.json({ message: "Access token required" });
         return;
     }
 
     try {
-        const user = jwt.verify(token, jwtSecret) as JwtPayload;
-        req.user = user.id;
+        const user = jwt.verify(accessToken, accessSecret) as TokenContents;
+        req.user = user;
         next();
     }
 
     catch (e) {
-        res.status(401);
+        res.status(403);
         res.json({ message: "Invalid token", error: e });
         return;
     }

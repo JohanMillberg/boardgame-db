@@ -5,7 +5,7 @@ export const getAllComments = async (req: Request, res: Response, next: NextFunc
     try {
         const comments = await prisma.comment.findMany({
             where: {
-                userId: req.user
+                userId: req.user.id
             }
         });
 
@@ -36,7 +36,7 @@ export const createComment = async (req: Request, res: Response, next: NextFunct
         const comment = await prisma.comment.create({
             data: {
                 content: req.body.content,
-                userId: req.user
+                userId: req.user.id
             }
         });
 
@@ -52,7 +52,7 @@ export const updateComment = async (req: Request, res: Response, next: NextFunct
         const updated = await prisma.comment.update({
             where: {
                 id: req.params.id,
-                userId: req.user
+                userId: req.user.id
             },
             data: req.body
         });
@@ -74,7 +74,7 @@ export const deleteComment = async (req: Request, res: Response, next: NextFunct
         const deleted = await prisma.comment.delete({
             where: {
                 id: req.params.id,
-                userId: req.user
+                userId: req.user.id
             }
         });
 

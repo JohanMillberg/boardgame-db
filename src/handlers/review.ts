@@ -6,7 +6,7 @@ export const getAllReviews = async (req: Request, res: Response, next: NextFunct
     try {
         const reviews = await prisma.review.findMany({
             where: {
-                userId: req.user
+                userId: req.user.id
             }
         });
 
@@ -22,7 +22,7 @@ export const getOneReview = async (req: Request, res: Response, next: NextFuncti
         const review = await prisma.review.findFirst({
             where: {
                 id: req.params.id,
-                userId: req.user
+                userId: req.user.id
             }
         });
 
@@ -41,7 +41,7 @@ export const createReview = async (req: Request, res: Response, next: NextFuncti
                 body: req.body.body,
                 score: req.body.score,
                 boardGameId: req.body.boardGameId,
-                userId: req.user
+                userId: req.user.id
             }
         });
 
@@ -57,7 +57,7 @@ export const updateReview = async (req: Request, res: Response, next: NextFuncti
         const updated = await prisma.review.update({
             where: {
                 id: req.params.id,
-                userId: req.user
+                userId: req.user.id
             },
             data: req.body
         });
@@ -79,7 +79,7 @@ export const deleteReview = async (req: Request, res: Response, next: NextFuncti
         const deleted = await prisma.review.delete({
             where: {
                 id: req.params.id,
-                userId: req.user
+                userId: req.user.id
             }
         });
 
