@@ -30,7 +30,7 @@ export const getOneGame = async (req: Request, res: Response, next: NextFunction
 
 export const createGame = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const userIsAdmin = checkIfAdmin(req.user);
+        const userIsAdmin = checkIfAdmin(req.user.id);
         if (!userIsAdmin) {
             res.status(401);
             res.json({ message: "User not authorized to add games" })
@@ -50,9 +50,26 @@ export const createGame = async (req: Request, res: Response, next: NextFunction
     }
 };
 
+export const getReviewsOfGame = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const game = await prisma.boardGame.findUnique({
+            where: {
+                id: req.params.id
+            },
+            include: {
+                reviews: true
+            }
+        });
+        res.status(200);
+        res.json({ data: game?.reviews });
+    } catch (e) {
+        next(e);
+    }
+}
+
 export const updateGame = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const userIsAdmin = checkIfAdmin(req.user);
+        const userIsAdmin = checkIfAdmin(req.user.id);
 
         if (!userIsAdmin) {
             res.status(401);
@@ -76,7 +93,7 @@ export const updateGame = async (req: Request, res: Response, next: NextFunction
 
 export const deleteGame = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const userIsAdmin = checkIfAdmin(req.user);
+        const userIsAdmin = checkIfAdmin(req.user.id);
 
         if (!userIsAdmin) {
             res.status(401);
