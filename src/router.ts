@@ -23,14 +23,20 @@ router.delete('/review/:id', deleteReview);
 // Comment
 router.get('/comment', getAllComments);
 router.get('/comment/:id', getOneComment);
-router.post('/comment', createComment);
+router.post('/comment',
+    body('content').isString(),
+    handleInputErrors,
+    createComment);
 router.put('/comment/:id', updateComment);
 router.delete('/comment/:id', deleteComment);
 
 // Boardgame
 router.get('/game', getGames);
 router.get('/game/:id', getOneGame);
-router.post('/game', createGame);
+router.post('/game',
+    body('title').isString(),
+    handleInputErrors,
+    createGame);
 router.put('/game/:id', updateGame);
 router.delete('/game/:id', deleteGame);
 router.get('/game/:id/reviews', getReviewsOfGame);
